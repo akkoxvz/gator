@@ -12,5 +12,5 @@ export async function runCommand(registry: CommandsRegistry, cmdName: string, ..
         throw new Error(`command ${cmdName} not in the registry`);
     }
 
-    commandHandler(cmdName, ...args);
+    await commandHandler(cmdName, ...args);
 }

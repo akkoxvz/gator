@@ -1,5 +1,5 @@
 import { CommandsRegistry, registerCommand, runCommand } from "./commands/commands"
-import { handlerLogin } from "./commands/users";
+import { handlerLogin, handlerRegister } from "./commands/users";
 
 async function main() {
     const args = process.argv.slice(2);
@@ -13,6 +13,7 @@ async function main() {
     const commandsRegistry: CommandsRegistry = {};
 
     registerCommand(commandsRegistry, "login", handlerLogin)
+    registerCommand(commandsRegistry, "register", handlerRegister)
 
     try {
         await runCommand(commandsRegistry, cmdName, ...cmdArgs);
