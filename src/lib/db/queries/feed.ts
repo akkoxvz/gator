@@ -13,3 +13,8 @@ export async function createFeed(name: string, url: string, userId: string) {
 
     return result;
 }
+
+export async function getFeeds() {
+    const result = await db.select().from(feeds)
+    return result;
+}

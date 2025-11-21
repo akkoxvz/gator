@@ -1,7 +1,7 @@
-import { getUserByName } from "../lib/db/queries/users";
+import { getUserById, getUserByName } from "../lib/db/queries/users";
 import { readConfig } from "../config";
 import { fetchFeed } from "../lib/api/feed";
-import { createFeed } from "../lib/db/queries/feed";
+import { createFeed, getFeeds } from "../lib/db/queries/feed";
 import { Feed, User } from "../lib/db/schema";
 
 function printFeed(user: User, feed: Feed) {
@@ -17,6 +17,26 @@ export async function handlerAgg(cmdName: string, ...args: string[]) {
     const url = "https://www.wagslane.dev/index.xml";
     const feed = await fetchFeed(url);
     console.log(JSON.stringify(feed, null, 2));
+}
+
+export async function handlerFeeds(cmdName: string, ...args: string[]) {
+    const feeds = await getFeeds();
+
+    if (feeds.length == 0) {
+        console.log(`No feeds found.`);
+        return;
+    }
+
+    console.log(`====== Feeds ======`)
+    for (const feed of feeds) {
+        const user = await getUserById(feed.userId);
+        if (!user) {
+            throw new Error(`Failed to find user for feed ${feed.id}`);
+        }
+
+        printFeed(user, feed);
+        console.log(`==================================`);
+    }
 }
 
 export async function handlerAddFeed(cmdName: string, ...args: string[]) {
