@@ -1,8 +1,9 @@
 import { getUserById, getUserByName } from "../lib/db/queries/users";
 import { readConfig } from "../config";
 import { fetchFeed } from "../lib/api/feed";
-import { createFeed, getFeeds } from "../lib/db/queries/feed";
+import { createFeed, getFeedByUrl, getFeeds } from "../lib/db/queries/feed";
 import { Feed, User } from "../lib/db/schema";
+import { createFeedFollows } from "../lib/db/queries/feedFollows";
 
 function printFeed(user: User, feed: Feed) {
   console.log(`* ID:            ${feed.id}`);
@@ -59,4 +60,36 @@ export async function handlerAddFeed(cmdName: string, ...args: string[]) {
     }
 
     printFeed(user, feed);
+}
+
+export async function handlerFollow(cmdName: string, ...args: string[]) {
+    if (args.length != 1) {
+        throw new Error(`usage ${cmdName} <url>`);
+    }
+    const url = args[0];
+
+    const config = readConfig()
+    const user = await getUserByName(config.currentUserName);
+
+    if (!user) {
+        throw new Error(`User ${user} not found`);
+    }
+
+    const feed = await getFeedByUrl(url)
+
+    if (!feed) {
+        throw new Error(`Feed ${url} not found`);
+    }
+
+    const feedFollow = await createFeedFollows(user.id, feed.id);
+    printFeedFollow(feedFollow);
+}
+
+
+function printFeedFollow(feedFollow: any) {
+  console.log(`* ID:            ${feedFollow.id}`);
+  console.log(`* Created:       ${feedFollow.createdAt}`);
+  console.log(`* Updated:       ${feedFollow.updatedAt}`);
+  console.log(`* name:          ${feedFollow.userName}`);
+  console.log(`* URL:           ${feedFollow.feedName}`);
 }

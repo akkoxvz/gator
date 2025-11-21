@@ -1,0 +1,27 @@
+import { eq } from "drizzle-orm";
+import { db } from "..";
+import { feedFollows, feeds, users } from "../schema";
+
+export async function createFeedFollows(userdId: string, feedId: string) {
+    const [newFeedFollow] = await db
+    .insert(feedFollows)
+    .values({
+        userId: userdId,
+        feedId: feedId
+    })
+    .returning();
+
+    const [result] = await db
+        .select({ 
+            id: feedFollows.id, 
+            createdAt: feedFollows.createdAt, 
+            updatedAt: feedFollows.updatedAt, 
+            userName: users.name,
+            feedName: feeds.name
+        })
+        .from(feedFollows)
+        .innerJoin(users, eq(feedFollows.userId, users.id))
+        .innerJoin(feeds, eq(feedFollows.feedId, feeds.id))
+
+    return result;
+}
