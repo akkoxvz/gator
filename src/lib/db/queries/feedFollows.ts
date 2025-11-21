@@ -17,7 +17,8 @@ export async function createFeedFollows(userdId: string, feedId: string) {
             createdAt: feedFollows.createdAt, 
             updatedAt: feedFollows.updatedAt, 
             userName: users.name,
-            feedName: feeds.name
+            feedName: feeds.name,
+            feedUrl: feeds.url
         })
         .from(feedFollows)
         .innerJoin(users, eq(feedFollows.userId, users.id))
@@ -39,7 +40,8 @@ export async function getFeedFollowsForUser(userId: string) {
             createdAt: feedFollows.createdAt, 
             updatedAt: feedFollows.updatedAt, 
             userName: users.name,
-            feedName: feeds.name
+            feedName: feeds.name,
+            feedUrl: feeds.url
         })
         .from(feedFollows)
         .innerJoin(users, eq(feedFollows.userId, users.id))
@@ -47,4 +49,17 @@ export async function getFeedFollowsForUser(userId: string) {
         .where(eq(feedFollows.userId, userId))
 
     return result;
+}
+
+export async function deleteFeedFollow(userId: string, feedId: string) {
+    const result = await db
+        .delete(feedFollows)
+        .where(
+            and(
+                eq(feedFollows.userId, userId),
+                eq(feedFollows.feedId, feedId)
+            )
+        );
+
+    return result
 }
