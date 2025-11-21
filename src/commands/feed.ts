@@ -3,7 +3,7 @@ import { readConfig } from "../config";
 import { fetchFeed } from "../lib/api/feed";
 import { createFeed, getFeedByUrl, getFeeds } from "../lib/db/queries/feed";
 import { Feed, User } from "../lib/db/schema";
-import { createFeedFollows } from "../lib/db/queries/feedFollows";
+import { createFeedFollows, getFeedFollowsForUser } from "../lib/db/queries/feedFollows";
 
 function printFeed(user: User, feed: Feed) {
   console.log(`* ID:            ${feed.id}`);
@@ -59,6 +59,11 @@ export async function handlerAddFeed(cmdName: string, ...args: string[]) {
         throw new Error(`Failed to create feed`);
     }
 
+    const feedFollow = await createFeedFollows(user.id, feed.id);
+    if (!feedFollow) {
+        throw new Error(`Failed to create feedFollow`);
+    }
+
     printFeed(user, feed);
 }
 
@@ -66,23 +71,46 @@ export async function handlerFollow(cmdName: string, ...args: string[]) {
     if (args.length != 1) {
         throw new Error(`usage ${cmdName} <url>`);
     }
-    const url = args[0];
 
     const config = readConfig()
     const user = await getUserByName(config.currentUserName);
-
     if (!user) {
         throw new Error(`User ${user} not found`);
     }
 
-    const feed = await getFeedByUrl(url)
-
+    const feedUrl = args[0];
+    const feed = await getFeedByUrl(feedUrl)
     if (!feed) {
-        throw new Error(`Feed ${url} not found`);
+        throw new Error(`Feed ${feedUrl} not found`);
     }
 
     const feedFollow = await createFeedFollows(user.id, feed.id);
     printFeedFollow(feedFollow);
+}
+
+export async function handlerFollowing(cmdName: string, ...args: string[]) {
+    const config = readConfig();
+
+    const user = await getUserByName(config.currentUserName);
+    if (!user) {
+        throw new Error(`User ${user} not found`);
+    }
+
+    const feeds = await getFeedFollowsForUser(user.id);
+    if (feeds.length == 0) {
+        console.log(`Feeds not found for user: ${user.name}`);
+        return;
+    }
+
+    console.log(`====== Feeds ======`)
+    for (const feed of feeds) {
+        if (!user) {
+            throw new Error(`Failed to find user for feed ${feed.id}`);
+        }
+
+        printFeedFollow(feed);
+        console.log(`==================================`);
+    }
 }
 
 
